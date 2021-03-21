@@ -3,17 +3,15 @@
 
 int main()
 {
+
     Queue<int> q;
     Queue<float> qf;
     
     int size = 100;
-    while (size) {
-        q.Enqueue(size--);
-    }
     float f = 0;
-    while (f < 10)
-    {
+    while (size) {
         f = f + 0.1f;
+        q.Enqueue(size--);
         qf.Enqueue(static_cast<float&&>(f));
     }
 

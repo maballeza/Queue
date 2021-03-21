@@ -7,7 +7,7 @@ public:
     /**
      * The condition 'head' == 'tail' is used to signal an empty queue.
      */
-    Queue() : head(new Node), tail(head) {}
+    Queue() : head(Allocate()), tail(head) {}
     ~Queue();
 
     void Enqueue(T&& obj);
@@ -17,14 +17,18 @@ private:
     struct Node
     {
         Node() : data(nullptr), next(nullptr) {}
-        Node(T* dat) : data(new T(*dat)), next(nullptr) {}
-        Node(Node* N) : data(N->data), next(N->next) { this = N; }
-        ~Node() { delete data; data = nullptr; next = nullptr; }
+        Node(T* dat) : data(dat), next(nullptr) {}
+        Node(Node* N) : data(N->data), next(N->next) {}
+        ~Node() { if (data) Deallocate(data); next = nullptr; }
         T* data;
         Node* next;
     };
 
-    Node* head;  // Initialized as nullptr, stores values
+    Node* Allocate(T* obj = nullptr) noexcept;
+    static void Deallocate(T* obj) noexcept;
+    static void Deallocate(Node* n) noexcept;
+    
+    Node* head;  // Value-storing, initialized as nullptr
     Node* tail;  // Always nullptr
 };
 
@@ -32,17 +36,16 @@ template<typename T>
 inline Queue<T>::~Queue()
 {
     if (tail != head)
-        delete tail;
-    delete head;
-    head = nullptr;
-    tail = nullptr;
+        Deallocate(tail);
+    Deallocate(head);
 }
 
 template<typename T>
 inline void Queue<T>::Enqueue(T&& obj) {
     if (head == tail) {
-        tail = new Node;
-        head->data = new T{ obj };
+        Deallocate(head);
+        head = Allocate(&obj);
+        tail = Allocate();
         head->next = tail;
         return;
     }
@@ -50,7 +53,7 @@ inline void Queue<T>::Enqueue(T&& obj) {
     while (adj->next != tail) {
         adj = adj->next;
     }
-    adj->next = new Node{ &obj };
+    adj->next = Allocate(&obj);
     adj->next->next = tail;
 }
 
@@ -62,7 +65,52 @@ inline T* Queue<T>::Dequeue() {
     Node* temp = head;
     head = temp->next;
     head->next = temp->next->next;
-    delete temp;
+    Deallocate(temp);
     
     return &ret;
+}
+
+template<typename T>
+typename Queue<T>::Node* Queue<T>::Allocate(T* obj) noexcept {
+    try {
+        if (obj != nullptr) 
+            obj = new T{ *obj };
+    }
+    catch (std::exception& e) {
+        std::cerr << e.what() << std::endl
+                  << "Object allocation failure." << std::endl;
+    }
+
+    try {
+        Node* ret = new Node{ obj };
+        return ret;
+    }
+    catch (std::exception& e) {
+        std::cerr << e.what() << std::endl
+                  << "Node allocation failure." << std::endl;
+    }
+}
+
+template<typename T>
+void Queue<T>::Deallocate(T* obj) noexcept {
+    try {
+        delete obj;
+        obj = nullptr;
+    }
+    catch (std::exception& e) {
+        std::cerr << e.what() << std::endl
+                  << "Object deallocation failure." << std::endl;
+    }
+}
+
+template<typename T>
+void Queue<T>::Deallocate(Node* n) noexcept {
+    try {
+        delete n;
+        n = nullptr;
+    }
+    catch (std::exception& e) {
+        std::cerr << e.what() << std::endl
+                  << "Node deallocation failure." << std::endl;
+    }
 }
