@@ -1,33 +1,86 @@
 #pragma once
 
 template<typename T>
-class Queue
-{
+struct Node{
+    Node() : data(T{}), next(nullptr) {}
+    ~Node() {}
+    T data;
+private:
+    Node(T dat) : data(dat), next(nullptr) {}
+    Node* next;
+    template<typename T> friend class Queue;
+};
+
+template<typename T>
+class Queue {
 public:
-    /**
-     * The condition 'head' == 'tail' is used to signal an empty queue.
-     */
     Queue() : tail(nullptr) { head = tail; }
+    Queue(Queue&&) noexcept;
+    Queue& operator=(Queue&&) noexcept;
     ~Queue();
 
-    T* Enqueue(T&& obj);
+    Node<T>* Enqueue(T&& obj); // Returns nullptr if allocation fails.
     T Dequeue();
 
 private:
-    struct Node
-    {
-        Node(T dat) : data(dat), next(nullptr) {}
-        ~Node() {}
-        T data;
-        Node* next;
-    };
-
-    Node* Allocate(T&& obj) noexcept;
-    void DeallocateList(Node* n);
+    Node<T>* Allocate(T&& obj) noexcept;
+    void DeallocateList(Node<T>* n);
     
-    Node* head;  // Value-storing, initialized as nullptr
-    Node* tail;  // Always nullptr
+    Node<T>* head;  // Value-storing.
+    Node<T>* tail;  // nullptr: The condition head == tail indicates an empty queue.
 };
+
+template<typename T>
+Queue<T>::Queue(Queue&& q) noexcept : tail(nullptr) {
+    if (Node<T>* n = q.head) {
+        head = Allocate(std::forward<T>(n->data));
+        if (n = n->next) {
+            Node<T>* m = Allocate(std::forward<T>(n->data));
+            head->next = m;
+            while (n = n->next) {
+                m->next = Allocate(std::forward<T>(n->data));
+                m = m->next;
+            }
+            m->next = tail;
+        }
+        else {
+            head->next = tail;
+        }
+        DeallocateList(q.head);
+        q.head = nullptr;
+    }
+    else {
+        head = tail;
+    }
+}
+
+template<typename T>
+Queue<T>& Queue<T>::operator=(Queue&& q) noexcept {
+    if (Node<T>* n = q.head) {
+        if (head != tail) {
+            DeallocateList(head);
+        }
+        head = Allocate(std::forward<T>(n->data));
+        if (n = n->next) {
+            Node<T>* m = Allocate(std::forward<T>(n->data));
+            head->next = m;
+            while (n = n->next) {
+                m->next = Allocate(std::forward<T>(n->data));
+                m = m->next;
+            }
+            m->next = tail;
+        }
+        else {
+            head->next = tail;
+        }
+        DeallocateList(q.head);
+        q.head = nullptr;
+    }
+    else {
+        head = tail;
+    }
+    return *this;
+}
 
 template<typename T>
 inline Queue<T>::~Queue() {
@@ -37,20 +90,7 @@ inline Queue<T>::~Queue() {
 }
 
 template<typename T>
-typename Queue<T>::Node* Queue<T>::Allocate(T&& obj) noexcept {
-    try {
-        Node* ret = new Node{ std::move(obj) };
-        return ret;
-    }
-    catch (std::exception& e) {
-        std::cerr << e.what() << std::endl
-                  << "Object allocation failure." << std::endl;
-        return nullptr;
-    }
-}
-
-template<typename T>
-void Queue<T>::DeallocateList(Node* n) {
+void Queue<T>::DeallocateList(Node<T>* n) {
     if (n->next != nullptr) {
         DeallocateList(n->next);
     }
@@ -58,44 +98,50 @@ void Queue<T>::DeallocateList(Node* n) {
 }
 
 template<typename T>
-T* Queue<T>::Enqueue(T&& obj) {
-    Node* adj = Allocate(std::move(obj));
-    if (adj) {
-        if (!head) { // Queue initialization: tail == nullptr.
-            head = adj;
-            head->next = tail;
-            return &head->data;
-        }
-        else if (Node* found = head->next) { // Search for the node preceding the tail.
-            while (found->next != tail) {
-                found = found->next;
-            }
-            found->next = adj;
-        }
-        else { // Inductive step.
-            head->next = adj;
-        }
-        adj->next = tail;
-        return &adj->data;
+typename Node<T>* Queue<T>::Allocate(T&& obj) noexcept {
+    try {
+        return new Node<T>{ std::forward<T>(obj) };
     }
-    else {
+    catch (std::bad_alloc& e) {
+        std::cerr << "Object allocation failure on line " << __LINE__ - 3 << " of " << __FILE__ << "." << std::endl;
         return nullptr;
     }
 }
 
 template<typename T>
+Node<T>* Queue<T>::Enqueue(T&& obj) {
+    Node<T>* n = Allocate(std::forward<T>(obj));
+    if (n) {
+        if (head == tail) { // Initialize the Queue.
+            head = n;
+            head->next = tail;
+        }
+        else if (head->next == tail) { // Inductive step.
+            head->next = n;
+        }
+        else { // Search for the node preceding the tail.
+            Node<T>* tailadj = head->next;
+            while (tailadj->next != tail) {
+                tailadj = tailadj->next;
+            }
+            tailadj->next = n;
+        }
+        n->next = tail;
+    }
+    return n;
+}
+
+template<typename T>
 T Queue<T>::Dequeue() {
-    if (head != tail) {
-        T ret = head->data;
-        Node* temp = head;
-        if (head->next) {
-            head = temp->next;
+    if (Node<T>* temp = head) {
+        Node<T> ret = *temp;
+        if (head = head->next) {
             head->next = temp->next->next;
         }
-        else {
-            head = tail;
-        }
-        delete temp;    // Assigning nullptr to temp->next is unnecessary in this context.
-        return std::move(ret);
+        delete temp;
+        return ret.data;
+    }
+    else {
+        return T{ -1 };
     }
 }

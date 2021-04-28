@@ -21,16 +21,26 @@ int main()
         float f = sz;  // Widening.
         std::string name{ std::to_string(ch) };
 
-        charA[sz] = *qc.Enqueue(std::move(ch));
-        intA[sz] = *qi.Enqueue(std::move(sz));
-        floatA[sz] = *qf.Enqueue(std::move(f));
-        strA[sz] = *qs.Enqueue(std::move(name));
+        charA[sz] =  qc.Enqueue(std::move(ch))->data;
+        intA[sz] =   qi.Enqueue(std::move(sz))->data;
+        floatA[sz] =  qf.Enqueue(std::move(f))->data;
+        strA[sz] = qs.Enqueue(std::move(name))->data;
     }
 
+    auto cc{ std::move(qc) };
+    auto ci{ std::move(qi) };
+    auto cf{ std::move(qf) };
+    auto cs{ std::move(qs) };
+
+    qc = std::move(cc);
+    qi = std::move(ci);
+    qf = std::move(cf);
+    qs = std::move(cs);
+
     for (int sz = 0; sz < size; sz++) {
-        if (charA[sz] != qc.Dequeue()) throw;
-        if (intA[sz] != qi.Dequeue()) throw;
+        if (charA[sz] !=  qc.Dequeue()) throw;
+        if (intA[sz] !=   qi.Dequeue()) throw;
         if (floatA[sz] != qf.Dequeue()) throw;
-        if (strA[sz] != qs.Dequeue()) throw;
+        if (strA[sz] !=   qs.Dequeue()) throw;
     }
-}
+} 
