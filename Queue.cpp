@@ -33,10 +33,10 @@ int main()
     auto cs{ std::move(qs) };
     
     // TODO
-    /*for (int sz = 0; sz < size; sz++) {
-        if (charA[sz] !=  qc.Dequeue()) throw;
-        if (intA[sz] !=   qi.Dequeue()) throw;
-        if (floatA[sz] != qf.Dequeue()) throw;
-        if (strA[sz] !=   qs.Dequeue()) throw;
-    }*/
+    for (int sz = 0; sz < size; sz++) {
+        if (charA[sz] !=  (qc.Dequeue()).item) throw;
+        if (intA[sz] !=   (qi.Dequeue()).item) throw;
+        if (floatA[sz] != (qf.Dequeue()).item) throw;
+        if (strA[sz] !=   (qs.Dequeue()).item) throw;
+    }
 } 
