@@ -140,10 +140,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Queue.cpp" />
+    <ClInclude Include="Queue.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Queue.hpp" />
+    <ClCompile Include="Queue.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

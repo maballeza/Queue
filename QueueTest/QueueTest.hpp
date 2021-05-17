@@ -1,4 +1,5 @@
 #pragma once
+#include "gtest/gtest.h"
 #include "../Queue.hpp"
 #include <numeric>
 
@@ -24,7 +25,6 @@ public:
 };
 
 TYPED_TEST_SUITE_P(QueueTest);
-
 
 /**
 * Default Constructor

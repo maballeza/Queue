@@ -102,7 +102,7 @@ typename Queue<T>::Node Queue<T>::Dequeue() {
 }
 
 template<>
-typename Queue<std::string>::Node Queue<std::string>::Dequeue() {
+inline typename Queue<std::string>::Node Queue<std::string>::Dequeue() {
     if (Node* temp = head) {
         if (head = head->next) {
             head->next = temp->next->next;
@@ -122,7 +122,7 @@ typename Queue<T>::Node* Queue<T>::Allocate(T&& itm) noexcept {
     try {
         return new Node{ std::forward<T>(itm) };
     }
-    catch (std::bad_alloc& e) {
+    catch (std::bad_alloc& /*e*/) {
         std::cerr << "Node allocation failure on line " << __LINE__ - 3 << " of " << __FILE__ << "." << std::endl;
         return nullptr;
     }
