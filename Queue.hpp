@@ -1,29 +1,21 @@
 #pragma once
+#include "Node.hpp"
 
-template<typename T>
+template<class I>
 class Queue {
 public:
-    struct Node {
-        T item;
-    private:
-        friend class Queue;
-        Node(T itm) : item(itm), next{} {}
-        Node(Node&& n) noexcept : item(n.item), next(n.next) {
-            n.item = T{}; n.next = nullptr;
-        }
-        Node* next;
-    };
+    using Node = DirectedNode<I>;
 
     Queue() : head{}, tail{}, size{} {}
     Queue(Queue&&) noexcept;
     ~Queue();
 
-    void Enqueue(T&& itm);
+    void Enqueue(I&& itm);
     Node Dequeue();
     int Size() const { return size; }
 
 private:
-    Node* Allocate(T&& itm) noexcept;
+    Node* Allocate(I&& itm) noexcept;
     void DeallocateQueue(Node** n);
     
     Node* head;  // Value-storing.
@@ -31,15 +23,15 @@ private:
     int size;
 };
 
-template<typename T>
-Queue<T>::Queue(Queue&& q) noexcept : tail{}, size(q.size) {
+template<class I>
+Queue<I>::Queue(Queue&& q) noexcept : tail{}, size(q.size) {
     if (Node* n = q.head) {
-        head = Allocate(std::forward<T>(n->item));
+        head = Allocate(std::forward<I>(n->item));
         if (n = n->next) {
-            Node* m = Allocate(std::forward<T>(n->item));
+            Node* m = Allocate(std::forward<I>(n->item));
             head->next = m;
             while (n = n->next) {
-                m->next = Allocate(std::forward<T>(n->item));
+                m->next = Allocate(std::forward<I>(n->item));
                 m = m->next;
             }
             m->next = tail;
@@ -55,17 +47,17 @@ Queue<T>::Queue(Queue&& q) noexcept : tail{}, size(q.size) {
     q.size = 0;
 }
 
-template<typename T>
-Queue<T>::~Queue() {
+template<class I>
+Queue<I>::~Queue() {
     if (head != tail) {
         DeallocateQueue(&head);
     }
     size = 0;
 }
 
-template<typename T>
-void Queue<T>::Enqueue(T&& itm) {
-    if (Node* n = Allocate(std::forward<T>(itm))) {
+template<class I>
+void Queue<I>::Enqueue(I&& itm) {
+    if (Node* n = Allocate(std::forward<I>(itm))) {
         if (head == tail) { // Initialize the Queue.
             head = n;
             head->next = tail;
@@ -85,8 +77,8 @@ void Queue<T>::Enqueue(T&& itm) {
     }
 }
 
-template<typename T>
-typename Queue<T>::Node Queue<T>::Dequeue() {
+template<class I>
+typename Queue<I>::Node Queue<I>::Dequeue() {
     if (Node* temp = head) {
         if (head = head->next) {
             head->next = temp->next->next;
@@ -117,10 +109,10 @@ inline typename Queue<std::string>::Node Queue<std::string>::Dequeue() {
     }
 }
 
-template<typename T>
-typename Queue<T>::Node* Queue<T>::Allocate(T&& itm) noexcept {
+template<class I>
+typename Queue<I>::Node* Queue<I>::Allocate(I&& itm) noexcept {
     try {
-        return new Node{ std::forward<T>(itm) };
+        return new Node{ std::forward<I>(itm) };
     }
     catch (std::bad_alloc& /*e*/) {
         std::cerr << "Node allocation failure on line " << __LINE__ - 3 << " of " << __FILE__ << "." << std::endl;
@@ -128,8 +120,8 @@ typename Queue<T>::Node* Queue<T>::Allocate(T&& itm) noexcept {
     }
 }
 
-template<typename T>
-void Queue<T>::DeallocateQueue(Node** n) {
+template<class I>
+void Queue<I>::DeallocateQueue(Node** n) {
     if (Node* m = *n; m->next != nullptr) {
         DeallocateQueue(&m->next);
     }
