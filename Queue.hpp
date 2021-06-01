@@ -15,7 +15,6 @@ public:
     int Size() const { return size; }
 
 private:
-    Node* Allocate(I&& itm) noexcept;
     void DeallocateQueue(Node** n);
     
     Node* head;  // Value-storing.
@@ -106,17 +105,6 @@ inline typename Queue<std::string>::Node Queue<std::string>::Dequeue() {
     }
     else {
        return Node{"-1"};
-    }
-}
-
-template<class I>
-typename Queue<I>::Node* Queue<I>::Allocate(I&& itm) noexcept {
-    try {
-        return new Node{ std::forward<I>(itm) };
-    }
-    catch (std::bad_alloc& /*e*/) {
-        std::cerr << "Node allocation failure on line " << __LINE__ - 3 << " of " << __FILE__ << "." << std::endl;
-        return nullptr;
     }
 }
 
