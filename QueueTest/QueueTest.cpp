@@ -1,29 +1,46 @@
 #include "gtest/gtest.h"
 #include "QueueTest.hpp"
 #include "QueueTestString.hpp"
-#include <string>
 
-class TypeStrings {
+std::vector<std::string> names{
+    "char",
+    "int",
+    "long",
+    "float",
+    "double"
+};
+using types = testing::Types<char, int, long, float, double>;
+
+REGISTER_TYPED_TEST_SUITE_P(QueueTest,
+    DefaultConstructor, 
+    MoveConstructor, 
+    Size, 
+    Enqueue, 
+    Dequeue);
+
+template<typename T>
+struct TypeName {
+    std::string name = typeid(T).name();
+};
+
+class TypeNames {
 public:
     template<typename T>
-    static std::string GetName(int ind) {
-        switch (ind) {
-        case 0:
-            return "Int";
-        case 1:
-            return "Long";
-        case 2:
-            return "Float";
-        case 3:
-            return "Double";
-        default:
-            return "User-Defined";
+    static std::string GetName(int type) {
+        TypeName<T> tn;
+        std::string s{ "Type" };
+        for (auto& n : names) {
+            if (tn.name == n) {
+                s = n;
+            }
         }
+        return s;
     }
 };
 
-using TestTypes = testing::Types<int, long, float, double>;
-INSTANTIATE_TYPED_TEST_SUITE_P(Initial, QueueTest, TestTypes, TypeStrings);
+using TestTypes = testing::Types<char, int, long, float, double>;
+
+INSTANTIATE_TYPED_TEST_SUITE_P(Param, QueueTest, TestTypes, TypeNames);
 
 int main(int argc, char** argv) {
     testing::InitGoogleTest(&argc, argv);

@@ -115,6 +115,3 @@ TYPED_TEST_P(QueueTest, Dequeue) {
     EXPECT_EQ(0, this->Q.Size());
     EXPECT_EQ(T{ -1 }, this->Q.Dequeue().item);
 }
-
-REGISTER_TYPED_TEST_SUITE_P(QueueTest, 
-    DefaultConstructor, MoveConstructor, Size, Enqueue, Dequeue);
