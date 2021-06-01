@@ -26,12 +26,12 @@ private:
 template<class I>
 Queue<I>::Queue(Queue&& q) noexcept : tail{}, size(q.size) {
     if (Node* n = q.head) {
-        head = Allocate(std::forward<I>(n->item));
+        head = Node::Build(std::forward<I>(n->item));
         if (n = n->next) {
-            Node* m = Allocate(std::forward<I>(n->item));
+            Node* m = Node::Build(std::forward<I>(n->item));
             head->next = m;
             while (n = n->next) {
-                m->next = Allocate(std::forward<I>(n->item));
+                m->next = Node::Build(std::forward<I>(n->item));
                 m = m->next;
             }
             m->next = tail;
@@ -57,7 +57,7 @@ Queue<I>::~Queue() {
 
 template<class I>
 void Queue<I>::Enqueue(I&& itm) {
-    if (Node* n = Allocate(std::forward<I>(itm))) {
+    if (Node* n = Node::Build(std::forward<I>(itm))) {
         if (head == tail) { // Initialize the Queue.
             head = n;
             head->next = tail;
