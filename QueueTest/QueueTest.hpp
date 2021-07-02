@@ -40,12 +40,12 @@ TYPED_TEST_P(QueueTest, DefaultConstructor) {
 
 /**
 * Move Constructor
-*   Copies values and dequeues the source Queue.
+*   Clones values and dequeues the source Queue.
 */
 TYPED_TEST_P(QueueTest, MoveConstructor) {
     using T = TypeParam;
 
-    // Ensure sizes match between the "move-from" and the "moved-to" Queues.
+    // Ensure sizes match between the "moved-from" and the "moved-to" Queues.
     int QSize = this->Q.Size();
     Queue<T> q{ std::forward<Queue<T>>(this->Q) };
     EXPECT_EQ(q.Size(), QSize);
@@ -74,14 +74,14 @@ TYPED_TEST_P(QueueTest, Size) {
     // Non-Empty Queue.
     int arbitrary = 20;
     for (int v = 0; v < arbitrary; ++v) {
-        q.Enqueue(std::move(v));
+        q.Enqueue(std::move(static_cast<T>(v)));
     }
     EXPECT_EQ(arbitrary, q.Size());
 }
 
 /**
 * Enqueue()
-*   Moves values into the Queue by r-value reference.
+*   Moves values into the Queue.
 */
 TYPED_TEST_P(QueueTest, Enqueue) {
     using T = TypeParam;
@@ -89,7 +89,7 @@ TYPED_TEST_P(QueueTest, Enqueue) {
     Queue<T> q;
     std::vector<T> clone;
     for (auto& v : this->vals) {
-        q.Enqueue(std::forward<T>(v));
+        q.Enqueue(std::move(static_cast<T>(v)));
         clone.emplace_back(v);
         EXPECT_EQ(clone.size(), q.Size());
     }
