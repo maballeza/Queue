@@ -6,18 +6,28 @@ template<class I>
 class Queue {
 public:
     using Node = DirectedNode<I>;
+    using Node = DirectedNode<I>;
 
     Queue() : head{}, tail{}, size{} {}
     Queue(Queue&&) noexcept;
     ~Queue();
 
 #ifdef BUILD
+#ifdef HANDLE
+    void Enqueue(Node* n);
+    HNode<Node> Dequeue();
+#else
     void Enqueue(Node* n);
     Node* Dequeue();
 #endif
-#ifndef BUILD
+#else
+#ifdef HANDLE
+    void Enqueue(I&& itm);
+    HNode<Node> Dequeue();
+#else
     void Enqueue(I&& itm);
     Node Dequeue();
+#endif
 #endif
     int Size() const { return size; }
 
@@ -30,32 +40,8 @@ private:
 };
 
 template<class I>
-Queue<I>::Queue(Queue&& q) noexcept : tail{}, size(q.size) {
-    if (Node* n = q.head) {
-        head = Node::Build(std::forward<I>(n->item));
-        if (n = n->next) {
-            Node* m = Node::Build(std::forward<I>(n->item));
-            head->next = m;
-            Node* l = n;
-            while (n = n->next) {
-                m->next = Node::Build(std::forward<I>(n->item));
-                m = m->next;
-                delete l;
-                l = n;
-            }
-            m->next = tail;
-            delete l;
-        }
-        else {
-            head->next = tail;
-        }
-        Node** l = &q.head;
-        delete* l;
-        *l = nullptr;
-    }
-    else {
-        head = tail;
-    }
+Queue<I>::Queue(Queue&& q) noexcept : head{ q.head }, tail {}, size(q.size) {
+    q.head = nullptr;
     q.size = 0;
 }
 
@@ -89,7 +75,35 @@ void Queue<I>::Enqueue(Node* n) {
         ++size;
     }
 }
+#ifdef HANDLE
+template<class I>
+HNode<typename Queue<I>::Node> Queue<I>::Dequeue() {
+    if (Node* temp = head) {
+        if (head = head->next) {
+            head->next = temp->next->next;
+        }
+        --size;
+        return HNode{ temp };
+    }
+    else {
+        return HNode{ temp };
+    }
+}
 
+template<>
+inline HNode<typename Queue<std::string>::Node> Queue<std::string>::Dequeue() {
+    if (Node* temp = head) {
+        if (head = head->next) {
+            head->next = temp->next->next;
+        }
+        --size;
+        return HNode{ temp };
+    }
+    else {
+        return HNode{ temp };
+    }
+}
+#else
 template<class I>
 typename Queue<I>::Node* Queue<I>::Dequeue() {
     if (Node* temp = head) {
@@ -122,6 +136,7 @@ inline typename Queue<std::string>::Node* Queue<std::string>::Dequeue() {
     }
 }
 #endif
+#endif
 
 #ifndef BUILD
 template<class I>
@@ -146,6 +161,35 @@ void Queue<I>::Enqueue(I&& itm) {
     }
 }
 
+#ifdef HANDLE
+template<class I>
+HNode<typename Queue<I>::Node> Queue<I>::Dequeue() {
+    if (Node* temp = head) {
+        if (head = head->next) {
+            head->next = temp->next->next;
+        }
+        --size;
+        return HNode{ temp };
+    }
+    else {
+        return HNode<typename Queue<I>::Node>{};
+    }
+}
+
+template<>
+inline HNode<typename Queue<std::string>::Node> Queue<std::string>::Dequeue() {
+    if (Node* temp = head) {
+        if (head = head->next) {
+            head->next = temp->next->next;
+        }
+        --size;
+        return HNode{ temp };
+    }
+    else {
+        return HNode<typename Queue<std::string>::Node>{};
+    }
+}
+#else
 template<class I>
 typename Queue<I>::Node Queue<I>::Dequeue() {
     if (Node* temp = head) {
@@ -177,6 +221,7 @@ inline typename Queue<std::string>::Node Queue<std::string>::Dequeue() {
         return Node{ "-1" };
     }
 }
+#endif
 #endif
 
 template<class I>
