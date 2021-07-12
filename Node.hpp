@@ -1,34 +1,19 @@
-#define BUILD
-#define HANDLE
-
-#ifdef HANDLE
-template<typename N>
-struct HNode {
-    HNode(N* n) : Node{ n } {};
-    HNode(HNode&& hn);
-    ~HNode() { delete Node; Node = nullptr; }
-    N* Release() { N* ret{ Node }; Node = nullptr; return ret; }
-    N* Node;
-    N& operator*() { return *Node; }
-    N* operator->() { return Node; }
-};
-#endif
-
-template<typename I>
+#pragma once
+template <typename I>
 struct BaseNode {
     I item;
     virtual ~BaseNode() {}
 protected:
-    BaseNode(I&& t) : item{ t } {}
+    BaseNode(I&& i) : item{ i } {}
 
-    template<class N>
+    template <class N>
     static N* Allocate(I&& i) { return new N{ std::move(i) }; }
 };
 
-template<typename I>
+template <typename I>
 struct DirectedNode : BaseNode<I> {
-    DirectedNode(I&& t)
-        : BaseNode<I>(std::forward<I>(t)), next{} {}
+    DirectedNode(I&& i)
+        : BaseNode<I>(std::forward<I>(i)), next{} {}
     DirectedNode(DirectedNode&& dn) noexcept
         : BaseNode<I>(std::forward<I>(dn.item)), next{ dn.next } {
         dn.item = I{};
@@ -37,28 +22,32 @@ struct DirectedNode : BaseNode<I> {
     ~DirectedNode() override {}
 
     DirectedNode* next;
-
-protected:
-    static DirectedNode* Build(I&& i) { return BaseNode<I>::template Allocate<DirectedNode>(std::forward<I>(i)); }
 };
 
-template<typename I>
+template <typename I>
 struct BiDirectionalNode : BaseNode<I> {
-    BiDirectionalNode(I&& t)
-        : BaseNode<I>(std::forward<I>(t)), next{}, prev{} {}
+    BiDirectionalNode(I&& i)
+        : BaseNode<I>(std::forward<I>(i)), next{}, prev{} {}
     ~BiDirectionalNode() override {}
 
     BiDirectionalNode* next;
     BiDirectionalNode* prev;
-
-protected:
-    static BiDirectionalNode* Build(I&& i) { return BaseNode<I>::template Allocate<BiDirectionalNode>(std::forward<I>(i)); }
 };
 
-#ifdef BUILD
-template<typename N>
-struct Build : N {
-    template<typename I>
-    static HNode<N> Instance(I&& i) { return HNode<N>{ typename N::Build(std::forward<I>(i))}; }
+template <template <typename> class N, typename I>
+struct HNode {
+    using Node = N<I>;
+    HNode(Node* n) : node{ n } {};
+    HNode(HNode&& hn);
+    ~HNode() { delete node; node = nullptr; }
+    Node& operator*() { return *node; }
+    Node* operator->() { return node; }
+    Node* Release() { Node* n{ node }; node = nullptr; return n; }
+    Node* node;
 };
-#endif
+
+template <template <typename> class N, typename I>
+struct Build : N<I> {
+    using Node = N<I>;
+    static HNode<N, I> Instance(I&& i) { return HNode<N, I>{ typename Node::template Allocate<Node>(std::forward<I>(i)) }; }
+};
