@@ -23,10 +23,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="QueueTestString.hpp">
+    <ClInclude Include="QueueTest.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="QueueTest.hpp">
+    <ClInclude Include="QueueTestString.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

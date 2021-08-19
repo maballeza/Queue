@@ -1,6 +1,7 @@
 #pragma once
 #include "gtest/gtest.h"
 #include "../Queue.hpp"
+#include <string>
 #include <numeric>
 
 /**
@@ -9,19 +10,19 @@
 */
 class QueueTestString : public testing::Test {
 public:
+    template <typename I>
+    using N = BiDirectionalNode<I>;
+    using string = std::string;
+
     void SetUp() override {
-        std::vector<int> ints;
-        // Initialize 'vals' with values { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }.
-        ints.resize(10);
-        std::iota(ints.begin(), ints.end(), 0);
-        // Initialize 'Q.'
-        for (auto& v : ints) {
-            std::string s = std::to_string(v);
-            vals.emplace_back(s);
-            Q.Enqueue(std::move(s));
+        keys.resize(10);
+        std::iota(keys.begin(), keys.end(), 0);
+        for (std::string& item : keys) { // Initializes 'test_Q' with values { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }.
+            HNode<N, std::string> n = Build<N, std::string>::Instance(std::move(item));
+            test_Q.Enqueue(n.Release());
         }
     }
 
-    Queue<std::string> Q;
-    std::vector<std::string> vals;
+    Queue<N, std::string> test_Q;
+    std::vector<std::string> keys;
 };

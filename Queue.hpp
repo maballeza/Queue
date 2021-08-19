@@ -2,10 +2,11 @@
 #include "Node.hpp"
 
 /**
-* Queue
-*   Template parameter N requirements:
-*       Allocation using Build::Instance()
-*       Member N* next
+* Queue Requirements:
+*   Template parameter N should
+*       possess a member "N* next" (forward lists),
+*       and (optionally) also a member "N* prev" (bidirectional lists), 
+*       and be allocated using Build::Instance()
 */
 template <template <typename> class N, typename I>
 class Queue {
@@ -14,10 +15,10 @@ public:
 
     Queue() : head{}, tail{}, size{} {}
     Queue(Queue&&) noexcept;
-    ~Queue();
+    ~Queue(); // Deallocates any nodes in its possession.
 
     void Enqueue(Node* n);
-    HNode<N, I> Dequeue();
+    Node* Dequeue();        // Releases nodes.
 
     int Size() const { return size; }
 
@@ -30,7 +31,7 @@ private:
 };
 
 template <template <typename> class N, typename I>
-Queue<N, I>::Queue(Queue&& q) noexcept : head{ q.head }, tail { q.tail }, size(q.size) {
+Queue<N, I>::Queue(Queue&& q) noexcept : head{ q.head }, tail{ q.tail }, size(q.size) {
     q.head = nullptr;
     q.size = 0;
 }
@@ -66,31 +67,31 @@ void Queue<N, I>::Enqueue(Node* n) {
 }
 
 template <template <typename> class N, typename I>
-HNode<N, I> Queue<N, I>::Dequeue() {
+typename Queue<N, I>::Node* Queue<N, I>::Dequeue() {
     if (Node* temp = head) {
         if (head = temp->next) {
             head->next = temp->next->next;
         }
         --size;
-        return HNode{ temp };
+        return HNode{ temp }.Release();
     }
     else {
-        return HNode{ temp };
+        return temp;
     }
 }
 
 #ifdef NDEBUG
-template < template <typename> class N>
-inline HNode<N, std::string> Queue<N, std::string>::Dequeue() {
+template <template <typename> class N>
+inline typename Queue<N, std::string>::Node* Queue<N, std::string>::Dequeue() {
     if (Node* temp = head) {
         if (head = head->next) {
             head->next = temp->next->next;
         }
         --size;
-        return HNode{ temp };
+        return HNode{ temp }.Release();
     }
     else {
-        return HNode{ temp };
+        return temp;
     }
 }
 #endif

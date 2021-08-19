@@ -2,90 +2,100 @@
 
 /**
 * Default Constructor
-*   Constructs an empty Queue.
+*   Constructs an empty queue.
 */
 TEST_F(QueueTestString, DefaultConstructor) {
-    
+    using Node = N<string>;
 
-    Queue<std::string> q;
+    Queue<N, string> q;
     EXPECT_EQ(0, q.Size());
-    EXPECT_EQ(std::string{ "-1" }, q.Dequeue().item);
+
+    Node* n = q.Dequeue();
+    EXPECT_EQ(nullptr, n);
 }
 
 /**
 * Move Constructor
-*   Copies values and dequeues the source Queue.
+*   Clones values and dequeues the source queue.
 */
 TEST_F(QueueTestString, MoveConstructor) {
+    using Node = N<string>;
     
+    // Ensure sizes do not match between the "moved-from" and the "moved-to" queues.
+    Queue<N, string> q{ std::move(test_Q) };
+    EXPECT_NE(q.Size(), test_Q.Size());
 
-    // Ensure sizes match between the "move-from" and the "moved-to" Queues.
-    int QSize = Q.Size();
-    Queue<std::string> q{ std::forward<Queue<std::string>>(Q) };
-    EXPECT_EQ(q.Size(), QSize);
+    // Ensure "Dequeue-ing" is performed when the "moved-from" queue is moved.
+    EXPECT_EQ(0, test_Q.Size());
 
-    // Ensure "Dequeue-ing" is performed when the "moved-from" Queue is moved.
-    EXPECT_EQ(0, Q.Size());
-
-    // Check the "moved-to" Queue value-matches the values used to initialize 'Q.'
-    for (auto& v : vals) {
-        EXPECT_EQ(v, q.Dequeue().item);
+    // Check the values used to initialize 'test_Q' and the "moved-to" queue's values match.
+    Queue<N, string> cleanup_Q;
+    for (string& item : keys) {
+        Node* n = q.Dequeue();  // Releases allocated nodes.
+        EXPECT_EQ(item, n->item);
+        cleanup_Q.Enqueue(n);   // Performs deallocation.
     }
 }
 
 
 /**
 * Size()
-*   Returns the size of the Queue.
+*   Returns the size of the queue.
 */
 TEST_F(QueueTestString, Size) {
-    
-
-    // Empty Queue.
-    Queue<std::string> q;
+    // Empty queue.
+    Queue<N, string> q;
     EXPECT_EQ(0, q.Size());
 
-    // Non-Empty Queue.
+    // Non-empty queue.
     int arbitrary = 20;
-    for (int v = 0; v < arbitrary; ++v) {
-        q.Enqueue(std::move(std::to_string(v)));
+    for (int item = 0; item < arbitrary; ++item) {
+        HNode<N, string> n = Build<N, string>::Instance(std::move(std::to_string(item)));
+        q.Enqueue(n.Release());
     }
     EXPECT_EQ(arbitrary, q.Size());
 }
 
 /**
 * Enqueue()
-*   Moves values into the Queue by r-value reference.
+*   Moves values into the queue.
 */
 TEST_F(QueueTestString, Enqueue) {
-    
-
-    Queue<std::string> q;
-    std::vector<std::string> clone;
-    for (auto& v : vals) {
-        q.Enqueue(std::forward<std::string>(v));
-        clone.emplace_back(v);
+    Queue<N, string> q;
+    std::vector<string> clone;
+    for (string& item : keys) {
+        HNode<N, string> n = Build<N, string>::Instance(std::move(item));
+        q.Enqueue(n.Release());
+        clone.emplace_back(item);
         EXPECT_EQ(clone.size(), q.Size());
     }
 }
 
 /**
 * Dequeue()
-*   Returns a Queue node with a valid value or -1.
+*   Returns a node pointer or nullptr.
 */
 TEST_F(QueueTestString, Dequeue) {
+    using Node = N<string>;
     
+    // Ensure a call to Dequeue() from an empty queue returns nullptr.
+    Queue<N, string> q;
+    Node* n = q.Dequeue();  // Releases allocated nodes.
+    EXPECT_EQ(nullptr, n);
 
-    // Ensure a call to Dequeue() from an empty Queue returns -1.
-    Queue<std::string> q;
-    EXPECT_EQ(std::string{ "-1" }, q.Dequeue().item);
-
-    // 1. Compare values of Q with those of initialization vector 'vals.'
-    for (auto& v : vals) {
-        EXPECT_EQ(v, Q.Dequeue().item);
+    // 1. Compare values of 'test_Q' with those of initialization vector 'keys.'
+    Queue<N, string> cleanup_Q;  // Performs deallocation.
+    for (string& item : keys) {
+        n = test_Q.Dequeue();
+        EXPECT_EQ(item, n->item);
+        cleanup_Q.Enqueue(n);
     }
 
-    // 2. Ensure Q is empty.
-    EXPECT_EQ(0, Q.Size());
-    EXPECT_EQ(std::string{ "-1" }, Q.Dequeue().item);
+    // 2. Ensure 'test_Q' is empty.
+    EXPECT_EQ(0, test_Q.Size());
+
+    n = test_Q.Dequeue();
+    EXPECT_EQ(nullptr, n);
+
+    cleanup_Q.Enqueue(n);
 }
