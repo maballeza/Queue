@@ -28,7 +28,8 @@ REGISTER_TYPED_TEST_SUITE_P(QueueTest,
     DefaultConstructor,
     MoveConstructor,
     Size,
-    Enqueue,
+    EnqueueNode,
+    EnqueueItem,
     Dequeue
 );
 

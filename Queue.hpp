@@ -17,6 +17,7 @@ public:
     Queue(Queue&&) noexcept;
     ~Queue(); // Deallocates any nodes in its possession.
 
+    void Enqueue(I&& n);
     void Enqueue(Node* n);
     Node* Dequeue();        // Releases nodes.
 
@@ -63,6 +64,13 @@ void Queue<N, I>::Enqueue(Node* n) {
         }
         n->next = tail;
         ++size;
+    }
+}
+
+template <template <typename> class N, typename I>
+void Queue<N, I>::Enqueue(I&& item) {
+    if (Node* n = Build<N, I>::Instance(std::forward<I>(item)).Release()) {
+        Enqueue(n);
     }
 }
 
