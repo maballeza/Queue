@@ -15,7 +15,7 @@ public:
 
     void SetUp() override {
         for (I& item : keys) { // Initialize test_Q.
-            Handle n = Build<N, I>::Instance(std::move(item));
+            Handle n = Acquire<N, I>::Instance(std::move(item));
             test_Q.Enqueue(n.Release());
         }
     }
@@ -89,7 +89,7 @@ TYPED_TEST_P(QueueTest, Size) {
     // Non-empty queue.
     int arbitrary = 20;
     for (int item = 0; item < arbitrary; ++item) {
-        Handle n = Build<N, I>::Instance(std::move(item));
+        Handle n = Acquire<N, I>::Instance(std::move(item));
         q.Enqueue(n.Release());
     }
     EXPECT_EQ(arbitrary, q.Size());
@@ -109,7 +109,7 @@ TYPED_TEST_P(QueueTest, EnqueueNode) {
     Queue q;
     std::vector<I> clone;
     for (I& item : keys) {
-        Handle n = Build<N, I>::Instance(std::move(item));
+        Handle n = Acquire<N, I>::Instance(std::move(item));
         q.Enqueue(n.Release());
         clone.emplace_back(item);
         EXPECT_EQ(clone.size(), q.Size());

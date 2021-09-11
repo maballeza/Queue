@@ -6,7 +6,7 @@
 *   Template parameter N should
 *       possess a member "N* next" (forward lists),
 *       and (optionally) also a member "N* prev" (bidirectional lists), 
-*       and be allocated using Build::Instance()
+*       and be allocated using Acquire::Instance()
 */
 template <template <typename> class N, typename I>
 class Queue {
@@ -69,7 +69,7 @@ void Queue<N, I>::Enqueue(Node* n) {
 
 template <template <typename> class N, typename I>
 void Queue<N, I>::Enqueue(I&& item) {
-    if (Node* n = Build<N, I>::Instance(std::forward<I>(item)).Release()) {
+    if (Node* n = Acquire<N, I>::Instance(std::forward<I>(item)).Release()) {
         Enqueue(n);
     }
 }

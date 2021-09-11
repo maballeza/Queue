@@ -17,7 +17,7 @@ public:
 
     void SetUp() override {
         for (string& item : keys) { // Initializes test_Q.
-            Handle n = Build<N, string>::Instance(std::move(item));
+            Handle n = Acquire<N, string>::Instance(std::move(item));
             test_Q.Enqueue(n.Release());
         }
     }

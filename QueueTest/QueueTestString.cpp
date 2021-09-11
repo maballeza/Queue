@@ -50,7 +50,7 @@ TEST_F(QueueTestString, Size) {
     // Non-empty queue.
     int arbitrary = 20;
     for (int item = 0; item < arbitrary; ++item) {
-        HNode<N, string> n = Build<N, string>::Instance(std::to_string(item));
+        HNode<N, string> n = Acquire<N, string>::Instance(std::to_string(item));
         q.Enqueue(n.Release());
     }
     EXPECT_EQ(arbitrary, q.Size());
@@ -65,7 +65,7 @@ TEST_F(QueueTestString, EnqueueNode) {
     Queue q;
     std::vector<string> clone;
     for (string& item : keys) {
-        Handle n = Build<N, string>::Instance(std::move(item));
+        Handle n = Acquire<N, string>::Instance(std::move(item));
         q.Enqueue(n.Release());
         clone.emplace_back(item);
         EXPECT_EQ(clone.size(), q.Size());
